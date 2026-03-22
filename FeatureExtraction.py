@@ -52,11 +52,21 @@ def extract_and_save(image_dir, feature_dir):
             print(f"Skip (no hand): {image_path}")
             continue
 
-        features = []
-
         hand_landmarks = result.hand_landmarks[0]
+
+        # Normalize keypoints position by wrist
+        # Turn global coordinates to relative coordinates
+        wrist_x = hand_landmarks[0].x
+        wrist_y = hand_landmarks[0].y
+        wrist_z = hand_landmarks[0].z
+
+        features = []
         for lm in hand_landmarks:
-            features.extend([lm.x, lm.y, lm.z])
+            features.extend([
+                lm.x - wrist_x,
+                lm.y - wrist_y,
+                lm.z - wrist_z
+            ])
 
         features = np.array(features, dtype=np.float32)
 
@@ -64,7 +74,6 @@ def extract_and_save(image_dir, feature_dir):
         save_path = os.path.join(feature_dir, stem + ".npy")
 
         np.save(save_path, features)
-
         print(f"Saved: {save_path}")
 
 

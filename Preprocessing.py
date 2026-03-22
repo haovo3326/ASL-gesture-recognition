@@ -3,7 +3,8 @@ import shutil
 import random
 
 project_dir = os.path.dirname(os.path.abspath(__file__))
-asl_dataset_dir = os.path.join(project_dir, "asl_dataset", "asl_alphabet_train", "asl_alphabet_train")
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+asl_dataset_dir = os.path.join(parent_dir, "asl_dataset", "asl_alphabet_train", "asl_alphabet_train")
 
 dataset_dir = os.path.join(project_dir, "classifier_dataset")
 images_dir = os.path.join(dataset_dir, "images")
@@ -30,12 +31,12 @@ for char in chars:
     random.shuffle(files)
 
     for i, file in enumerate(files):
-        if i < 360:
+        if i < 720:
             shutil.copy(os.path.join(char_dir, file), os.path.join(images_train_dir, f"IMG{train_counter}.jpeg"))
             with open(os.path.join(labels_train_dir, f"IMG{train_counter}.txt"), "w") as f:
                 f.write(char)
             train_counter += 1
-        elif i < 400:
+        elif i < 800:
             shutil.copy(os.path.join(char_dir, file), os.path.join(images_val_dir, f"IMG{val_counter}.jpeg"))
             with open(os.path.join(labels_val_dir, f"IMG{val_counter}.txt"), "w") as f:
                 f.write(char)

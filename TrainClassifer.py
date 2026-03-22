@@ -41,10 +41,20 @@ os.makedirs(classifier_train_dir, exist_ok=True)
 # =========================
 # Classifier
 # =========================
+# MODEL_PATH = "classifier_train/train3/classifier.pth"
+LANDMARKER_PATH = "hand_landmarker.task"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 classifier = Classifier(
     in_features=Classifier.KEYPOINTS_FLATTEN,
     out_features=len(chars)
 )
+
+# classifier.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+classifier = classifier.to(DEVICE)
+
+print("Using device:", DEVICE)
+print("Model device:", next(classifier.parameters()).device)
 
 # =========================
 # Training setup
@@ -57,7 +67,7 @@ patience = 10
 best_val_loss = float("inf")
 counter = 0
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss().to(DEVICE)
 optimizer = optim.Adam(classifier.parameters(), lr=learning_rate)
 
 # Keep total sample space based on images
@@ -78,12 +88,15 @@ train_ids = list(range(train_N))
 val_ids = list(range(val_N))
 
 # Metrics files
-current_train_dir = "train2"
-train_loss_file = os.path.join(classifier_train_dir, current_train_dir, "train_loss.txt")
-train_acc_file = os.path.join(classifier_train_dir, current_train_dir, "train_acc.txt")
-val_loss_file = os.path.join(classifier_train_dir, current_train_dir,"val_loss.txt")
-val_acc_file = os.path.join(classifier_train_dir,current_train_dir, "val_acc.txt")
-model_save_path = os.path.join(classifier_train_dir,current_train_dir,"classifier.pth")
+current_train_dir = "train4"
+current_train_path = os.path.join(classifier_train_dir, current_train_dir)
+os.makedirs(current_train_path, exist_ok=True)
+
+train_loss_file = os.path.join(current_train_path, "train_loss.txt")
+train_acc_file = os.path.join(current_train_path, "train_acc.txt")
+val_loss_file = os.path.join(current_train_path, "val_loss.txt")
+val_acc_file = os.path.join(current_train_path, "val_acc.txt")
+model_save_path = os.path.join(current_train_path, "classifier.pth")
 
 # Optional: clear old logs at start
 open(train_loss_file, "w").close()
@@ -162,8 +175,8 @@ for epoch in range(epochs):
         if len(batch_x) == 0:
             continue
 
-        batch_x = torch.tensor(np.array(batch_x), dtype=torch.float32)
-        batch_y = torch.tensor(batch_y, dtype=torch.long)
+        batch_x = torch.tensor(np.array(batch_x), dtype=torch.float32, device=DEVICE)
+        batch_y = torch.tensor(batch_y, dtype=torch.long, device=DEVICE)
 
         optimizer.zero_grad()
 
@@ -233,8 +246,8 @@ for epoch in range(epochs):
             if len(batch_x) == 0:
                 continue
 
-            batch_x = torch.tensor(np.array(batch_x), dtype=torch.float32)
-            batch_y = torch.tensor(batch_y, dtype=torch.long)
+            batch_x = torch.tensor(np.array(batch_x), dtype=torch.float32, device=DEVICE)
+            batch_y = torch.tensor(batch_y, dtype=torch.long, device=DEVICE)
 
             logits = classifier(batch_x)
             loss = criterion(logits, batch_y)

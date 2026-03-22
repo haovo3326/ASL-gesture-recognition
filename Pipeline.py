@@ -12,7 +12,7 @@ from Classifier import Classifier
 # =========================
 # Constants
 # =========================
-MODEL_PATH = "classifier_train/train1/classifier.pth"  # your trained classifier weights
+MODEL_PATH = "classifier_train/train3/classifier.pth"  # your trained classifier weights
 LANDMARKER_PATH = "hand_landmarker.task" # MediaPipe hand model
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -62,11 +62,26 @@ landmarker = vision.HandLandmarker.create_from_options(options)
 def landmarks_to_feature_vector(hand_landmarks):
     """
     Convert 21 landmarks to shape (63,)
-    Format: [x1, y1, z1, x2, y2, z2, ..., x21, y21, z21]
+    using wrist-relative normalization.
+
+    Format:
+    [x1', y1', z1', x2', y2', z2', ..., x21', y21', z21']
+    where:
+    x' = x - wrist_x
+    y' = y - wrist_y
+    z' = z - wrist_z
     """
+    wrist_x = hand_landmarks[0].x
+    wrist_y = hand_landmarks[0].y
+    wrist_z = hand_landmarks[0].z
+
     features = []
     for lm in hand_landmarks:
-        features.extend([lm.x, lm.y, lm.z])
+        features.extend([
+            lm.x - wrist_x,
+            lm.y - wrist_y,
+            lm.z - wrist_z
+        ])
 
     return np.array(features, dtype=np.float32)
 
