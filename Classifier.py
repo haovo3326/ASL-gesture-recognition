@@ -13,6 +13,12 @@ class Classifier(nn.Module):
             nn.Linear(64, 128),
             nn.ReLU(),
 
+            # nn.Linear(128, 256),
+            # nn.ReLU(),
+            #
+            # nn.Linear(256, 128),
+            # nn.ReLU(),
+
             nn.Linear(128, 64),
             nn.ReLU(),
 

@@ -31,12 +31,12 @@ for char in chars:
     random.shuffle(files)
 
     for i, file in enumerate(files):
-        if i < 720:
+        if i < 360:
             shutil.copy(os.path.join(char_dir, file), os.path.join(images_train_dir, f"IMG{train_counter}.jpeg"))
             with open(os.path.join(labels_train_dir, f"IMG{train_counter}.txt"), "w") as f:
                 f.write(char)
             train_counter += 1
-        elif i < 800:
+        elif i < 400:
             shutil.copy(os.path.join(char_dir, file), os.path.join(images_val_dir, f"IMG{val_counter}.jpeg"))
             with open(os.path.join(labels_val_dir, f"IMG{val_counter}.txt"), "w") as f:
                 f.write(char)

@@ -41,7 +41,7 @@ os.makedirs(classifier_train_dir, exist_ok=True)
 # =========================
 # Classifier
 # =========================
-# MODEL_PATH = "classifier_train/train3/classifier.pth"
+MODEL_PATH = "classifier_train/train2/classifier.pth"
 LANDMARKER_PATH = "hand_landmarker.task"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -50,7 +50,7 @@ classifier = Classifier(
     out_features=len(chars)
 )
 
-# classifier.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+classifier.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 classifier = classifier.to(DEVICE)
 
 print("Using device:", DEVICE)
@@ -60,8 +60,8 @@ print("Model device:", next(classifier.parameters()).device)
 # Training setup
 # =========================
 epochs = 100
-batch_size = 64
-learning_rate = 3e-4
+batch_size = 32
+learning_rate = 1e-4
 patience = 10
 
 best_val_loss = float("inf")
