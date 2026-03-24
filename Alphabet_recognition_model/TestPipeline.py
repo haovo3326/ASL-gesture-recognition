@@ -10,10 +10,10 @@ from Classifier import Classifier
 # =========================
 # Constants
 # =========================
-MODEL_PATH = "classifier_train/train4/classifier.pth"
+MODEL_PATH = "../classifier_train/train4/classifier.pth"
 LANDMARKER_PATH = "hand_landmarker.task"
+IMAGE_PATH = "../asl_alphabet/P.jpg"  # "classifier_dataset/images/val/IMG162.jpeg"   # change this to your image path
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-THRESHOLD = 0.6
 
 CLASS_NAMES = [
     "A", "B", "C", "D", "E", "F", "G",
@@ -84,89 +84,73 @@ def predict_from_landmarks(hand_landmarks):
     with torch.no_grad():
         logits = classifier(x)
         probs = torch.softmax(logits, dim=1)
+
+        for i, p in enumerate(probs[0]):
+            print(f"{CLASS_NAMES[i]}: {p.item():.4f}")
+
         pred_idx = torch.argmax(probs, dim=1).item()
         confidence = probs[0, pred_idx].item()
 
-    is_valid = confidence >= THRESHOLD
-    return pred_idx, confidence, is_valid
+    return pred_idx, confidence
 
 
 # =========================
-# Webcam loop
+# Load image
 # =========================
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+frame = cv2.imread(IMAGE_PATH)
+if frame is None:
+    raise FileNotFoundError(f"Could not read image: {IMAGE_PATH}")
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+mp_image = mp.Image(
+    image_format=mp.ImageFormat.SRGB,
+    data=rgb
+)
 
-    mp_image = mp.Image(
-        image_format=mp.ImageFormat.SRGB,
-        data=rgb
+result = landmarker.detect(mp_image)
+
+h, w, _ = frame.shape
+label_text = "No hand detected"
+
+if result.hand_landmarks:
+    hand_landmarks = result.hand_landmarks[0]
+
+    pts = []
+    for lm in hand_landmarks:
+        x = int(lm.x * w)
+        y = int(lm.y * h)
+        pts.append((x, y))
+        cv2.circle(frame, (x, y), 4, (0, 255, 0), -1)
+
+    for i, j in HAND_CONNECTIONS:
+        cv2.line(frame, pts[i], pts[j], (255, 0, 0), 2)
+
+    pred_idx, confidence = predict_from_landmarks(hand_landmarks)
+    label_text = f"{CLASS_NAMES[pred_idx]} ({confidence:.2f})"
+
+    x0 = min(p[0] for p in pts)
+    y0 = min(p[1] for p in pts)
+    cv2.putText(
+        frame,
+        label_text,
+        (x0, max(y0 - 10, 30)),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1.0,
+        (0, 255, 0),
+        4
+    )
+else:
+    cv2.putText(
+        frame,
+        label_text,
+        (30, 50),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1.0,
+        (0, 255, 0),
+        4
     )
 
-    result = landmarker.detect(mp_image)
-
-    h, w, _ = frame.shape
-    label_text = "No hand detected"
-    text_color = (0, 255, 0)
-
-    if result.hand_landmarks:
-        hand_landmarks = result.hand_landmarks[0]
-
-        pts = []
-        for lm in hand_landmarks:
-            x = int(lm.x * w)
-            y = int(lm.y * h)
-            pts.append((x, y))
-            cv2.circle(frame, (x, y), 4, (0, 255, 0), -1)
-
-        for i, j in HAND_CONNECTIONS:
-            cv2.line(frame, pts[i], pts[j], (255, 0, 0), 2)
-
-        pred_idx, confidence, is_valid = predict_from_landmarks(hand_landmarks)
-
-        if is_valid:
-            label_text = f"{CLASS_NAMES[pred_idx]} ({confidence:.2f})"
-            text_color = (0, 255, 0)
-        else:
-            label_text = f"? ({confidence:.2f})"
-            text_color = (0, 0, 255)
-
-        x0 = min(p[0] for p in pts)
-        y0 = min(p[1] for p in pts)
-
-        cv2.putText(
-            frame,
-            label_text,
-            (x0, max(y0 - 10, 30)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1.0,
-            text_color,
-            4
-        )
-
-    else:
-        cv2.putText(
-            frame,
-            label_text,
-            (30, 50),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1.0,
-            text_color,
-            4
-        )
-
-    cv2.imshow("Webcam Hand Detector + Classifier", frame)
-
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
-        break
-
-cap.release()
+cv2.imshow("Image Hand Detector + Classifier", frame)
+cv2.waitKey(0)
 cv2.destroyAllWindows()

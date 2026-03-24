@@ -41,7 +41,7 @@ os.makedirs(classifier_train_dir, exist_ok=True)
 # =========================
 # Classifier
 # =========================
-MODEL_PATH = "classifier_train/train2/classifier.pth"
+MODEL_PATH = "../classifier_train/train2/classifier.pth"
 LANDMARKER_PATH = "hand_landmarker.task"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
