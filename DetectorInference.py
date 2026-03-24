@@ -100,7 +100,9 @@ while True:
 
     cv2.imshow("Hand Landmarks", frame)
 
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    key = cv2.waitKey(1) & 0xFF
+    # Thoát nếu nhấn phím 'q' HOẶC phím 'Esc' (mã 27)
+    if key == ord("q") or key == 27:
         break
 
 cap.release()
