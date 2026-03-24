@@ -10,6 +10,7 @@ from Classifier import Classifier
 # =========================
 # Constants
 # =========================
+
 MODEL_PATH = "../classifier_train/train4/classifier.pth"
 LANDMARKER_PATH = "hand_landmarker.task"
 IMAGE_PATH = "../asl_alphabet/P.jpg"  # "classifier_dataset/images/val/IMG162.jpeg"   # change this to your image path
