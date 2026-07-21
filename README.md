@@ -1,4 +1,7 @@
 # Hand Gesture Alphabet Model
+<p align="center">
+  <img src="Model Inference.png" width="600">
+</p>
 
 This project recognizes American Sign Language alphabet gestures from hand landmarks. It uses MediaPipe to detect 21 hand keypoints, converts those keypoints into a normalized 63-value feature vector, and classifies letters `A` to `Z` with a PyTorch neural network.
 
